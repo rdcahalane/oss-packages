@@ -1,0 +1,23 @@
+{
+  "name": "edgar-client",
+  "version": "0.1.0",
+  "description": "Unified SEC EDGAR client: CIK lookup, EFTS search, XBRL financials, Form 4, 8-K parsing. Zero API key needed.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit --pretty false"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5"
+  }
+}

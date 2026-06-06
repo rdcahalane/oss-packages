@@ -1,0 +1,26 @@
+{
+  "name": "event-study-engine",
+  "version": "0.1.0",
+  "description": "Event study engine: compute excess returns at T+1/5/10/30/90/180 vs benchmark ETF. Aggregate by event type for backtesting.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "npm run build --workspace market-data-lite && tsc",
+    "typecheck": "npm run build --workspace market-data-lite && tsc --noEmit --pretty false"
+  },
+  "dependencies": {
+    "market-data-lite": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5"
+  }
+}

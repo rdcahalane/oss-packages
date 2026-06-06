@@ -1,0 +1,29 @@
+{
+  "name": "hybrid-search-pgvector",
+  "version": "1.0.0",
+  "description": "Hybrid semantic + keyword search over a pgvector Postgres store using Reciprocal Rank Fusion",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit --pretty false"
+  },
+  "keywords": ["pgvector", "semantic-search", "hybrid-search", "rrf", "postgres", "embeddings"],
+  "peerDependencies": {
+    "pg": ">=8"
+  },
+  "devDependencies": {
+    "@types/pg": "^8",
+    "@types/node": "^22.0.0",
+    "typescript": "^5"
+  }
+}

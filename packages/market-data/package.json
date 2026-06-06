@@ -1,0 +1,23 @@
+{
+  "name": "market-data-lite",
+  "version": "0.1.0",
+  "description": "Stock price fetching with disk cache, NaN handling, courtesy delays. Wraps yfinance for reliable batch price data.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit --pretty false"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5"
+  }
+}

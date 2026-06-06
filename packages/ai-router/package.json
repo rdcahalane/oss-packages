@@ -1,0 +1,20 @@
+{
+  "name": "ai-router",
+  "version": "1.0.0",
+  "description": "Model routing — Sonnet for reasoning, Haiku for extraction, Ollama local fallback",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["anthropic", "claude", "ollama", "model-routing", "haiku", "sonnet"]
+}

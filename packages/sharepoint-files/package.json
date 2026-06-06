@@ -1,0 +1,25 @@
+{
+  "name": "sharepoint-files",
+  "version": "1.0.0",
+  "description": "M365 SharePoint file access via Microsoft Graph API — auth, drive discovery, file listing, download, and text extraction",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit --pretty false"
+  },
+  "keywords": ["sharepoint", "m365", "microsoft-graph", "office365", "files", "sync", "pptx", "docx"],
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5"
+  }
+}

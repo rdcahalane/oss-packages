@@ -1,0 +1,25 @@
+version: '3.8'
+
+# Postgres only — run `npm start` separately (or in a second terminal)
+# To use another hosted Postgres provider instead, skip this file entirely.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: agent_factory
+      POSTGRES_USER: agent
+      POSTGRES_PASSWORD: agentfactory
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent -d agent_factory"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

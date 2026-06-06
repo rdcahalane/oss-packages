@@ -1,0 +1,28 @@
+{
+  "name": "pptx-extractor",
+  "version": "1.0.0",
+  "description": "Extract per-slide text and structured metadata from PPTX files — generic, configurable, no external API calls",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit --pretty false"
+  },
+  "keywords": ["pptx", "powerpoint", "slides", "extract", "parse", "office", "research"],
+  "dependencies": {
+    "fflate": "^0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5"
+  }
+}

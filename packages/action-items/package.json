@@ -1,0 +1,25 @@
+{
+  "name": "action-items",
+  "version": "1.0.0",
+  "description": "Extract structured action items from documents, transcripts, and messages using Claude",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit --pretty false"
+  },
+  "keywords": ["action-items", "extraction", "ai", "claude", "haiku", "meetings", "transcripts"],
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "channel-formatter",
+  "version": "1.0.0",
+  "description": "Format AI response Markdown for Telegram, Slack, Teams, and SMS — zero dependencies",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit --pretty false"
+  },
+  "keywords": ["formatter", "telegram", "slack", "teams", "sms", "markdown", "channel", "messaging"],
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
