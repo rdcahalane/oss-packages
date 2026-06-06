@@ -1,4 +1,4 @@
-# edgar-client
+# @rdcahalane/edgar-client
 
 Unified client for public SEC EDGAR data.
 
@@ -13,13 +13,13 @@ Unified client for public SEC EDGAR data.
 ## Install
 
 ```bash
-npm install edgar-client
+npm install @rdcahalane/edgar-client
 ```
 
 ## Usage
 
 ```ts
-import { lookupCIK, searchFilings, fetchFinancials } from "edgar-client";
+import { lookupCIK, searchFilings, fetchFinancials } from "@rdcahalane/edgar-client";
 
 const cik = await lookupCIK("AAPL");
 const filings = await searchFilings({ ticker: "AAPL", form: "8-K" });

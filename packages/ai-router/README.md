@@ -1,4 +1,4 @@
-# ai-router
+# @rdcahalane/ai-router
 
 Simple multi-provider LLM router with fallback across local and hosted models.
 
@@ -12,13 +12,13 @@ Simple multi-provider LLM router with fallback across local and hosted models.
 ## Install
 
 ```bash
-npm install ai-router
+npm install @rdcahalane/ai-router
 ```
 
 ## Usage
 
 ```ts
-import { createAIRouter } from "ai-router";
+import { createAIRouter } from "@rdcahalane/ai-router";
 
 const router = createAIRouter({
   anthropicApiKey: process.env.ANTHROPIC_API_KEY,

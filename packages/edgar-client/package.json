@@ -1,5 +1,5 @@
 {
-  "name": "edgar-client",
+  "name": "@rdcahalane/edgar-client",
   "version": "0.1.0",
   "description": "Unified SEC EDGAR client: CIK lookup, EFTS search, XBRL financials, Form 4, 8-K parsing. Zero API key needed.",
   "license": "MIT",

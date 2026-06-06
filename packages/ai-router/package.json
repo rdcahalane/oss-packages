@@ -1,5 +1,5 @@
 {
-  "name": "ai-router",
+  "name": "@rdcahalane/ai-router",
   "version": "1.0.0",
   "description": "Model routing — Sonnet for reasoning, Haiku for extraction, Ollama local fallback",
   "license": "MIT",
