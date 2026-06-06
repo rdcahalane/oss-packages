@@ -13,13 +13,29 @@ private data, personal integrations, or company-specific infrastructure.
 | `pptx-extractor` | Extract slide text and structured fields from PowerPoint files |
 | `hybrid-search-pgvector` | Combine pgvector similarity with PostgreSQL full-text search |
 | `sharepoint-files` | Access, download, and extract text from SharePoint files via Microsoft Graph |
-| `ai-router` | Route requests across LLM providers with fallback support |
-| `edgar-client` | Query public SEC EDGAR data with a single client |
+| `@rdcahalane/ai-router` | Route requests across LLM providers with fallback support |
+| `@rdcahalane/edgar-client` | Query public SEC EDGAR data with a single client |
 | `action-items` | Extract structured action items from meetings, transcripts, and documents |
 | `output-quality` | Review, revise, and compress markdown documents for export workflows |
 | `event-study-engine` | Measure excess returns around time-bound events |
 | `agent-factory-discord` | Multi-agent Discord bot starter with debate and routing support |
 | `market-data-lite` | Lightweight public market price fetcher used by `event-study-engine` |
+
+## Live Packages
+
+Published on npm:
+
+- `channel-formatter`
+- `pptx-extractor`
+- `hybrid-search-pgvector`
+- `sharepoint-files`
+- `action-items`
+- `@rdcahalane/ai-router`
+- `@rdcahalane/edgar-client`
+- `market-data-lite`
+- `event-study-engine`
+- `output-quality`
+- `agent-factory-discord`
 
 ## Goals
 
@@ -29,11 +45,13 @@ private data, personal integrations, or company-specific infrastructure.
 
 ## Status
 
-This workspace is a public-release preparation repo. Before publishing, verify:
+This repository has been sanitized, published, and verified locally with:
 
-1. package names you want to claim on npm
-2. repository URLs
-3. CI, test coverage, and release automation
+1. `npm install`
+2. `npm run build`
+3. `npm run typecheck`
+
+The next useful improvements are CI, tests, examples, and per-package release automation.
 
 ## License
 
