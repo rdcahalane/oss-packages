@@ -17,6 +17,8 @@ import pool from "./db.js";
 import { extractProposedAction } from "./debate.js";
 import { notifyQueued } from "./discord.js";
 import { buildIntentPrompt, classifyDiscordIntent } from "./discord-intents.js";
+import { kickAdvisor, inviteAdvisor, getRosterText } from "./roster.js";
+import { HELP_TEXT } from "./help.js";
 
 const RAW_DIR = process.env.CONVERSATION_DIR ?? "./conversation";
 const CONVERSATION_DIR = RAW_DIR.startsWith("~")
@@ -87,20 +89,60 @@ function parseCommand(text: string): ParsedCommand | null {
   const content = text.trim();
   if (!content) return null;
 
+  // !help
+  if (/^!help\b/i.test(content)) return { to_agent: "__help__", type: "__help__", prompt: content };
+
   // !approve / !reject / !ask — respond to last debate proposed action
   if (/^!approve\b/i.test(content)) return { to_agent: "__approve__", type: "__approve__", prompt: content };
   if (/^!reject\b/i.test(content))  return { to_agent: "__reject__",  type: "__reject__",  prompt: content };
   if (/^!ask\b/i.test(content))     return { to_agent: "__ask__",     type: "__ask__",     prompt: content };
 
-  // !debate [agentA vs agentB [N]] [--red agentName]: topic
-  const debateMatch = content.match(/^!debate(?:\s+([\w]+(?:\s+vs\s+[\w]+)+)(?:\s+(\d+))?(?:\s+--red\s+([\w]+))?)?:\s*([\s\S]+)/i);
+  // Roster management
+  if (/^!roster\b/i.test(content))  return { to_agent: "__roster__",  type: "__roster__",  prompt: content };
+  const kickMatch   = content.match(/^!kick\s+([\w]+)/i);
+  if (kickMatch)  return { to_agent: "__kick__",   type: "__kick__",   prompt: kickMatch[1] };
+  const inviteMatch = content.match(/^!invite\s+([\w]+)/i);
+  if (inviteMatch) return { to_agent: "__invite__", type: "__invite__", prompt: inviteMatch[1] };
+
+  // !board [cfo cmo ...]: topic
+  const boardMatch = content.match(/^!board(?:\s+([\w\s]+?))?:\s*([\s\S]+)/i);
+  if (boardMatch) {
+    const rawIds = boardMatch[1]?.trim().split(/\s+/).filter(Boolean) ?? [];
+    const topic  = boardMatch[2].trim();
+    return {
+      to_agent: "auto", type: "board", prompt: topic,
+      extra: { ...(rawIds.length ? { advisor_ids: rawIds } : {}) },
+    };
+  }
+
+  // !debate [agentA vs agentB [N]] [--red agentName] [--socratic agentName]: topic
+  const debateMatch = content.match(/^!debate(?:\s+(.+?))?:\s*([\s\S]+)/i);
   if (debateMatch) {
-    const agents   = debateMatch[1] ? debateMatch[1].toLowerCase().split(/\s+vs\s+/).map(s => s.trim()) : ["claude", "local"];
-    const rounds   = debateMatch[2] ? parseInt(debateMatch[2], 10) : undefined;
-    const red_team = debateMatch[3]?.toLowerCase();
-    const topic    = debateMatch[4].trim();
-    return { to_agent: "auto", type: "debate", prompt: topic,
-      extra: { agents, ...(rounds ? { rounds } : {}), ...(red_team ? { red_team } : {}) } };
+    const optStr = debateMatch[1] ?? "";
+    const topic  = debateMatch[2].trim();
+
+    const redMatch      = optStr.match(/--red\s+([\w]+)/i);
+    const socraticMatch = optStr.match(/--socratic\s+([\w]+)/i);
+    const cleanOpts     = optStr.replace(/--\w+\s+[\w]+/gi, "").trim();
+    const agentsPart    = cleanOpts.match(/([\w]+(?:\s+vs\s+[\w]+)+)/i)?.[1];
+    const roundsPart    = cleanOpts.split(/\s+/).find(p => /^\d+$/.test(p));
+
+    const isAll    = /^all$/i.test(cleanOpts.replace(/\d+/g, "").trim());
+    const agents   = isAll ? ["claude", "beast", "canoe", "gemini", "codex", "kimi"]
+                   : agentsPart ? agentsPart.toLowerCase().split(/\s+vs\s+/).map(s => s.trim())
+                   : ["claude", "local"];
+    const rounds   = roundsPart ? parseInt(roundsPart, 10) : undefined;
+    const red_team = redMatch?.[1]?.toLowerCase();
+    const socratic = socraticMatch?.[1]?.toLowerCase();
+    return {
+      to_agent: "auto", type: "debate", prompt: topic,
+      extra: {
+        agents,
+        ...(rounds   ? { rounds }   : {}),
+        ...(red_team ? { red_team } : {}),
+        ...(socratic ? { socratic } : {}),
+      },
+    };
   }
 
   // !agentname: prompt
@@ -200,6 +242,23 @@ async function handleAsk(extraPrompt: string): Promise<void> {
   appendDivider();
 }
 
+// ── Roster management ────────────────────────────────────────────────────────
+
+function handleKick(id: string): void {
+  appendToConversation("⚙️ roster", kickAdvisor(id, "file"));
+  appendDivider();
+}
+
+function handleInvite(id: string): void {
+  appendToConversation("⚙️ roster", inviteAdvisor(id, "file"));
+  appendDivider();
+}
+
+function handleRoster(): void {
+  appendToConversation("⚙️ roster", getRosterText("file"));
+  appendDivider();
+}
+
 // ── Main inbox processor ──────────────────────────────────────────────────────
 
 async function processInbox(): Promise<void> {
@@ -220,9 +279,13 @@ async function processInbox(): Promise<void> {
   appendDivider();
   appendToConversation("You", raw);
 
+  if (cmd.type === "__help__")    { appendToConversation("⚙️ help", HELP_TEXT); appendDivider(); return; }
   if (cmd.type === "__approve__") { await handleApprove(); return; }
   if (cmd.type === "__reject__")  { await handleReject();  return; }
   if (cmd.type === "__ask__")     { await handleAsk(raw);  return; }
+  if (cmd.type === "__roster__")  { handleRoster();  return; }
+  if (cmd.type === "__kick__")    { handleKick(cmd.prompt);   return; }
+  if (cmd.type === "__invite__")  { handleInvite(cmd.prompt); return; }
 
   if (cmd.type === "debate") {
     const taskId = await queueTask("debate", "auto", {
@@ -269,11 +332,10 @@ export function startFileBot(): void {
   // Create inbox.md if missing
   if (!existsSync(INBOX_FILE)) {
     writeFileSync(INBOX_FILE,
-      `# Agent Factory — Inbox\n\n` +
+      `# Board of Advisor Agents — Inbox\n\n` +
       `Type your message below this line and save the file.\n` +
       `This file clears automatically after pickup.\n\n` +
-      `Commands: !debate claude vs gemini: topic · !claude: prompt · !gemini: prompt\n` +
-      `After a debate: !approve · !reject · !ask\n\n` +
+      `Type !help and save to see all available commands.\n\n` +
       `---\n\n`
     );
   }

@@ -1,6 +1,6 @@
 import type { AgentTask } from "./coordinator.js";
 
-// Tasks that can run on a cheap local model — auto-route to a remote or local lightweight model
+// Tasks that can run on a cheap local model — auto-route to beast or local
 const LOCAL_TYPES = new Set([
   "commit_msg", "docstring", "boilerplate", "code_review_single",
   "refactor_simple", "explain_fn", "seed_data",
@@ -29,10 +29,41 @@ async function isUp(url: string): Promise<boolean> {
 }
 
 async function bestLocalAgent(): Promise<AgentKey | null> {
-  const beastHealth = process.env.BEAST_HEALTH_URL ?? (process.env.BEAST_URL ? `${process.env.BEAST_URL}/health` : "");
+  const beastBase = process.env.BEAST_URL ?? "http://localhost:8081";
+  const beastHealth = process.env.BEAST_HEALTH_URL ?? `${beastBase.replace(/\/$/, "")}/health`;
   if (beastHealth && await isUp(beastHealth)) return "beast";
-  if (process.env.OLLAMA_URL && await isUp(`${process.env.OLLAMA_URL}/api/tags`)) return "local";
+  const ollamaUrl = process.env.OLLAMA_URL ?? "http://localhost:11434";
+  if (ollamaUrl && await isUp(`${ollamaUrl.replace(/\/$/, "")}/api/tags`)) return "local";
   return null;
+}
+
+/** Heuristic: does this text appear to be primarily non-English?
+ *  >40% non-ASCII printable chars (CJK, Arabic, Cyrillic, etc.) → likely non-Latin script.
+ *  Beast's multilingual capability is weak; Claude handles it better. */
+function isNonEnglish(text: string): boolean {
+  const printable = text.replace(/\s/g, "");
+  if (printable.length < 4) return false;
+  const nonLatin = printable.split("").filter(c => c.charCodeAt(0) > 0x024F).length;
+  return nonLatin / printable.length > 0.4;
+}
+
+/** Return true if this chat task needs Claude — Beast can't handle it well. */
+function needsClaude(task: AgentTask): boolean {
+  if (task.type !== "chat") return false;
+  const prompt = String(task.payload.prompt ?? "");
+  // Use the original pre-enrichment prompt for length and complexity checks so that
+  // injected history/profile context doesn't incorrectly push simple prompts to Claude.
+  const originalPrompt = String(task.payload._original_prompt ?? task.payload.prompt ?? "");
+  return (
+    /https?:\/\//.test(originalPrompt) ||                                 // user message contains a URL
+    /^Web context:/m.test(prompt) ||                                      // web context was injected (check full enriched)
+    originalPrompt.length > 2500 ||                                       // long original = complex reasoning
+    isNonEnglish(originalPrompt) ||                                       // non-Latin script → Claude
+    // Verbs that signal depth/complexity Claude handles better than Beast.
+    // Deliberately narrow: brainstorm verbs (write, recommend, improve, research, plan)
+    // are intentionally excluded — Beast handles those fine.
+    /\b(analyze|compare|review|implement|summarize all|evaluate|diagnose|explain.*why|what.*missing|what.*wrong|deploy|migrate|refactor|architect|debug|troubleshoot)\b/i.test(originalPrompt)
+  );
 }
 
 export async function routeTask(task: AgentTask): Promise<AgentKey> {
@@ -44,7 +75,13 @@ export async function routeTask(task: AgentTask): Promise<AgentKey> {
     // fall through to claude if no local available
   }
 
-  if (GEMINI_TYPES.has(task.type)) return "gemini"; // uses gemini-cli (subscription auth, no API key)
+  if (GEMINI_TYPES.has(task.type)) return "gemini";
+
+  // Complex chat → Claude. Beast handles simple conversational chat only.
+  if (needsClaude(task)) return "claude";
+
+  const local = await bestLocalAgent();
+  if (local) return local;
 
   return "claude";
 }

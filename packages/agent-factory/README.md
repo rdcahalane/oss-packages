@@ -8,19 +8,23 @@ This package is a good fit for teams that want one Discord interface over severa
 
 - Auto-routing by task type
 - Explicit agent selection with `!agent:` commands
-- Debate mode with multiple agents
-- Optional red-team review flow
+- **Multi-model debate** (`!debate all`) across every configured backend — distinct models argue, not one model with itself
+- **Resilient debates/boards** — an unavailable agent (auth error, offline, timeout) is skipped with a one-line note; one bad agent never aborts the session
+- **Board of advisors** (`!board all`) — a full persona panel (CFO, CMO, CTO, COO, GC, CPO, UX, plus fun advisors), token-budget capped
+- Optional red-team / Socratic review flow
 - Support for local models, remote hosted models, CLI-based agents, and API-based agents
 
 ## Supported Agent Types
 
-- local Ollama models
-- remote HTTP-backed local models
-- Claude-backed flows
-- Codex-backed flows
-- Gemini-backed flows
+- local Ollama models (one or more nodes — e.g. a second box on your LAN/Tailscale for free model diversity)
+- remote HTTP-backed local models (llama.cpp)
+- Claude-backed flows (API)
+- Codex-backed flows (OpenAI subscription)
+- Gemini-backed flows (CLI)
+- Kimi via OpenRouter (optional, paid) — adds a frontier model to debates
 
-The package is designed so you can enable only the agents you actually use.
+The package is designed so you can enable only the agents you actually use; any agent
+you haven't configured is simply skipped at debate time.
 
 ## Example Commands
 

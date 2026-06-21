@@ -1,3 +1,25 @@
+// Returns true when the question likely requires live/current data that an LLM can't know
+export function needsWebSearch(content: string): boolean {
+  const t = content.trim().toLowerCase();
+
+  // Explicit live-data keywords
+  if (/\b(latest|current|right now|as of today|this week|this month|today'?s?|tonight'?s?|yesterday'?s?|breaking|live|real-time|real time)\b/.test(t)) return true;
+
+  // News / events
+  if (/\b(news|headlines|what('?s| is) happening|what happened|any updates?|did .+ (happen|win|lose|pass|fail|launch|release|announce))\b/.test(t)) return true;
+
+  // Price / market / weather
+  if (/\b(price of|stock price|trading at|market cap|weather|forecast|temperature|score of|game score|standings|rankings)\b/.test(t)) return true;
+
+  // "Is X still..." / "Does X still..."
+  if (/\b(is .+ still|does .+ still|are .+ still|has .+ (been|changed|updated|released|launched))\b/.test(t)) return true;
+
+  // Specific lookup-style questions where freshness matters
+  if (/\b(who (won|is winning|leads?|is (ceo|president|cto|cfo)|runs?)|when (did|does|is|will) .+ (release|launch|open|close|start|end))\b/.test(t)) return true;
+
+  return false;
+}
+
 export type DiscordIntent =
   | "repair"
   | "publish"
@@ -34,6 +56,7 @@ export function classifyDiscordIntent(content: string): DiscordIntent {
 export function buildIntentPrompt(content: string): string {
   const intent = classifyDiscordIntent(content);
   const trimmed = content.trim();
+  const looksLikeQuestion = /[?]\s*$/.test(trimmed) || /^(what|why|how|which|who|where|when|is it|are we|should we|can we|does this|do you think|opinion on)\b/i.test(trimmed);
   if (intent === "repair") {
     return [
       "The user is asking for a repair or fix.",
@@ -76,6 +99,28 @@ export function buildIntentPrompt(content: string): string {
     return [
       "The user wants a concise summary or digest.",
       "Summarize the important points and include explicit action items or outputs if relevant.",
+      `User request: ${trimmed}`,
+    ].join(" ");
+  }
+  if (/https?:\/\/\S+/i.test(trimmed) || /linkedin\.com/i.test(trimmed)) {
+    return [
+      "The user shared a link or social post and wants a useful response.",
+      "Analyze the content, give a clear take, identify what matters, and suggest the best next move.",
+      "If the post is noteworthy, say why and whether it deserves reply, repost, or follow-up.",
+      `User request: ${trimmed}`,
+    ].join(" ");
+  }
+  if (looksLikeQuestion) {
+    const isSimpleFact = /^(what('?s| is) (the )?(time|date|day|year|month)|how (old|long|many|much)|who (is|are|was|were)|where (is|are)|when (is|was|did))\b/i.test(trimmed);
+    if (isSimpleFact) {
+      return trimmed;
+    }
+    return [
+      "The user is asking a direct question and wants an actual answer, not observation.",
+      "Answer directly and decisively in plain language.",
+      "Be specific: name the concrete gap, what is likely causing it, and what to do next.",
+      "If the user compares something to 'our setup', compare it against the current bot / route / prompt / retry flow rather than giving generic NLP advice.",
+      "Do not say 'improve conversational flow', 'add NLP', or 'research frameworks' unless that is the actual best next action.",
       `User request: ${trimmed}`,
     ].join(" ");
   }

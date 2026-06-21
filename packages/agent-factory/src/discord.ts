@@ -8,6 +8,8 @@ const AGENT_EMOJI: Record<string, string> = {
   claude: "🧠",
   gemini: "✨",
   local: "💻",
+  canoe: "🛶",
+  kimi: "🌙",
   codex: "🤖",
   openai: "🤖",
 };
@@ -26,18 +28,9 @@ async function post(embeds: object[]): Promise<void> {
   }
 }
 
-export async function notifyClaimed(task: AgentTask, agentName: string): Promise<void> {
-  await post([{
-    color: 0xf59e0b,
-    title: `⚡ ${AGENT_EMOJI[agentName] ?? "🤖"} ${agentName} claimed task`,
-    fields: [
-      { name: "Type", value: task.type, inline: true },
-      { name: "From", value: task.from_agent, inline: true },
-      { name: "ID",   value: `\`${task.id.slice(0, 8)}\``, inline: true },
-    ],
-    timestamp: new Date().toISOString(),
-  }]);
-}
+// notifyClaimed removed — intermediate "claimed task" embeds were pure channel
+// noise (one full embed per claim, repeated on re-claims). Completion is covered
+// by notifyDone/notifyFailed.
 
 export async function notifyDone(task: AgentTask, agentName: string, result: string, elapsedMs: number): Promise<void> {
   const preview = result.slice(0, 200).replace(/\n/g, " ");
@@ -82,11 +75,17 @@ export async function notifyQueued(task: AgentTask): Promise<void> {
 }
 
 export async function notifyDebateRound(task: AgentTask, agentName: AgentName, roundNum: number, content: string): Promise<void> {
-  const preview = content.slice(0, 300).replace(/\n/g, " ");
+  // Strip markdown heading markers — Discord renders "# "/"## " as huge font,
+  // which made positions unreadable. Keep newlines for structure, and show the
+  // full round up to ~3800 chars (embed description max is 4096) instead of a
+  // 300-char clip that couldn't be expanded.
+  const clean = content.replace(/^#{1,6}\s+/gm, "").trim();
+  const MAX = 3800;
+  const body = clean.length > MAX ? `${clean.slice(0, MAX)}\n\n…(truncated)` : clean;
   await post([{
     color: 0x6366f1,
     title: `${AGENT_EMOJI[agentName] ?? "🤖"} ${agentName} — Round ${roundNum}`,
-    description: preview.length < content.length ? `${preview}…` : preview,
+    description: body,
     fields: [{ name: "Topic ID", value: `\`${task.id.slice(0, 8)}\``, inline: true }],
     timestamp: new Date().toISOString(),
   }]);
